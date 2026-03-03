@@ -1,0 +1,38 @@
+.next/dev/types/validator.ts(477,31): error TS2344: Type 'typeof import("/Users/mac/Desktop/agric/app/api/kyc/documents/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/kyc/documents/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(req: Request, { params }: { params: { id: string; }; }) => Promise<NextResponse<unknown>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type '{ params: { id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(549,31): error TS2344: Type 'typeof import("/Users/mac/Desktop/agric/app/api/users/[id]/documents/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/users/[id]/documents">'.
+  Types of property 'GET' are incompatible.
+    Type '(req: Request, { params }: { params: { id: string; }; }) => Promise<NextResponse<{ error: string; }> | NextResponse<{ user: { id: any; email: any; role: any; verificationStatus: any; }; exporterProfile: any; documents: any; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type '{ params: { id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/types/validator.ts(458,39): error TS2307: Cannot find module '../../app/api/finance/[id]/route.js' or its corresponding type declarations.
+app/(authenticated)/admin/audit/page.tsx(51,44): error TS7006: Parameter 'log' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(32,60): error TS7006: Parameter 'i' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(32,90): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(33,63): error TS7006: Parameter 'i' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(33,96): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(45,56): error TS7006: Parameter 'b' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(46,62): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(48,57): error TS7006: Parameter 'i' implicitly has an 'any' type.
+app/api/admin/circumvention/route.ts(54,41): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/api/documents/[id]/download/route.ts(65,41): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'BodyInit | null | undefined'.
+  Type 'Buffer<ArrayBufferLike>' is missing the following properties from type 'URLSearchParams': size, append, delete, get, and 2 more.
+app/api/user/delete/route.ts(23,42): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+lib/dossier/compiler.ts(54,40): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+lib/dossier/compiler.ts(58,53): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+lib/dossier/compiler.ts(58,58): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+lib/dossier/compiler.ts(62,20): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+lib/llm/deal-scorer.ts(62,44): error TS7006: Parameter 'd' implicitly has an 'any' type.
+lib/prisma.ts(8,9): error TS2451: Cannot redeclare block-scoped variable 'prisma'.
+lib/prisma.ts(11,27): error TS2339: Property 'prisma' does not exist on type 'typeof globalThis'.
+lib/prisma.ts(15,55): error TS2339: Property 'prisma' does not exist on type 'typeof globalThis'.
+scripts/test-openai.ts(101,73): error TS7006: Parameter 'd' implicitly has an 'any' type.
+scripts/test-openai.ts(101,99): error TS7006: Parameter 'e' implicitly has an 'any' type.
+scripts/test-prisma-models.ts(3,7): error TS2451: Cannot redeclare block-scoped variable 'prisma'.

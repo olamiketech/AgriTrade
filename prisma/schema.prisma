@@ -1,0 +1,326 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  role              String    // EXPORTER, BUYER, ADMIN
+  verificationStatus String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  consentGivenAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  exporterProfile   ExporterProfile?
+  buyerProfile      BuyerProfile?
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+}
+
+model ExporterProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  companyName     String
+  country         String
+  approvalStatus  String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt       DateTime  @default(now())
+  
+  kycProviderId   String?
+  kycStatus       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  kycData         String?   // JSON string from provider
+  
+  deals           TradeDeal[]
+  financeRequests FinanceRequest[]
+  kycDocuments    KycDocument[]
+
+  verificationLevel String    @default("BASIC") // BASIC, VERIFIED, VERIFIED_PLUS
+  verificationNotes String?
+  verifiedAt        DateTime?
+}
+
+model KycDocument {
+  id              String          @id @default(uuid())
+  exporterProfileId String
+  exporterProfile ExporterProfile @relation(fields: [exporterProfileId], references: [id])
+  filePath        String
+  fileName        String
+  fileType        String          // e.g., "PASSPORT", "BUSINESS_LICENSE", "ID_CARD"
+  mimeType        String          // e.g., "image/jpeg", "application/pdf"
+  uploadedAt      DateTime        @default(now())
+  reviewedBy      String?         // Admin user ID who reviewed
+  reviewedAt      DateTime?
+  reviewNotes     String?
+}
+
+model BuyerProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  companyName String
+  country     String
+  createdAt   DateTime @default(now())
+}
+
+model TradeDeal {
+  id              String         @id @default(uuid())
+  exporterId      String
+  exporter        ExporterProfile @relation(fields: [exporterId], references: [id])
+  buyerEmail      String
+  productDetails  String
+  quantity        Float
+  price           Float
+  currency        String
+  payoutCurrency  String?        // NEW: for FX scenarios
+  deliveryTerms   String
+  
+  paymentStatus   String?        // PENDING, PAID, FAILED, RELEASED
+  paymentReference String?
+  partnerStatus   String?
+  
+  // State Machine: CREATED, ACCEPTED, AWAITING_PAYMENT, PAID_HELD, SHIPPED, DELIVERY_CONFIRMED, RELEASE_REQUESTED, RELEASED, DISPUTED, CANCELLED
+  status          String         @default("CREATED")
+  
+  shipmentStatus  String         @default("PENDING") // PENDING, SHIPPED, IN_TRANSIT, DELIVERED
+  deliveryStatus  String         @default("PENDING") // PENDING, CONFIRMED, DISPUTED
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  paymentRecords  PaymentRecord[]
+  fxTransactions  FXTransaction[]
+  disputes        DisputeRecord[]
+  
+  documents       Document[]
+  financeRequests FinanceRequest[]
+  auditLogs       AuditLog[]
+  summaries       DossierSummary[]
+  messages        Message[]
+  score           DealScore?
+}
+
+model PaymentRecord {
+  id              String   @id @default(uuid())
+  dealId          String
+  deal            TradeDeal @relation(fields: [dealId], references: [id])
+  partner         String   // 'MODULR'
+  partnerReference String? // e.g. Payment ID in Modulr
+  partnerTxId     String?  // Transaction ID from webhook
+  amount          Float
+  currency        String
+  status          String   // INITIATED, PAID_HELD, RELEASE_REQUESTED, RELEASED, FAILED
+  rawPayload      Json?    // Store webhook payload for audit
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model FXTransaction {
+  id              String   @id @default(uuid())
+  dealId          String
+  deal            TradeDeal @relation(fields: [dealId], references: [id])
+  partner         String   // 'EBURY'
+  quotedRate      Float
+  lockedRate      Float
+  originalAmount  Float
+  convertedAmount Float
+  payoutCurrency  String
+  partnerReference String? // Deal ref in Ebury
+  status          String   // QUOTED, LOCKED, EXECUTED, FAILED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model DisputeRecord {
+  id          String    @id @default(uuid())
+  dealId      String
+  deal        TradeDeal @relation(fields: [dealId], references: [id])
+  openedBy    String    // User ID
+  reason      String
+  evidenceUrls String[] 
+  resolution  String?   // PENDING, REFUNDED, RELEASED, SPLIT
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  
+  // Polymorphic Actor
+  actorType   String   // 'USER', 'SYSTEM', 'ADMIN'
+  actorId     String
+  
+  // Polymorphic Target
+  entityType  String?  // 'TRADE', 'PAYMENT', 'USER'
+  entityId    String?
+
+  metadata    Json?    // JSONB in Postgres
+  timestamp   DateTime @default(now())
+  
+  // Keep relation to User for easier querying if actor is a User
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+  
+  // Keep relation to Trade if target is a Trade
+  trade       TradeDeal? @relation(fields: [tradeId], references: [id])
+  tradeId     String?
+}
+
+model Document {
+  id          String       @id @default(uuid())
+  tradeId     String
+  trade       TradeDeal    @relation(fields: [tradeId], references: [id])
+  filePath    String
+  type        String
+  uploadedBy  String       // User ID or Email
+  createdAt   DateTime     @default(now())
+  
+  extractions DocumentExtraction[]
+  rawExtraction DocumentRawExtraction?
+}
+
+model DocumentRawExtraction {
+  id          String   @id @default(uuid())
+  documentId  String   @unique
+  document    Document @relation(fields: [documentId], references: [id])
+  payload     String   // JSON string
+  provider    String   // 'AWS', 'GOOGLE', 'MOCK'
+  createdAt   DateTime @default(now())
+}
+
+
+model FinanceRequest {
+  id          String        @id @default(uuid())
+  tradeId     String
+  trade       TradeDeal     @relation(fields: [tradeId], references: [id])
+  exporterId  String
+  exporter    ExporterProfile @relation(fields: [exporterId], references: [id])
+  amount      Float?
+  currency    String        @default("GBP")
+  purpose     String?
+  supportingDocs String?    // JSON string
+  status      String        @default("DRAFT") // DRAFT, SUBMITTED, UNDER_REVIEW, REFERRED, FINANCED, DECLINED, NEEDS_INFO
+  adminNotes  String?
+  partnerRefId String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  referralLogs FinanceReferralLog[]
+}
+
+model FinanceReferralLog {
+  id              String         @id @default(uuid())
+  financeRequestId String
+  financeRequest  FinanceRequest @relation(fields: [financeRequestId], references: [id])
+  action          String         // submitted_to_partner, partner_response, admin_update, forwarded_email
+  payload         String?        // JSON string
+  actorId         String?
+  createdAt       DateTime       @default(now())
+}
+
+model IntroductionRecord {
+  id              String    @id @default(uuid())
+  buyerId         String
+  exporterId      String
+  initialTradeId  String
+  introducedAt    DateTime  @default(now())
+  expiresAt       DateTime
+  status          String    @default("ACTIVE") // ACTIVE, EXPIRED
+
+  @@unique([buyerId, exporterId])
+}
+
+model TermsAcceptance {
+  id           String   @id @default(uuid())
+  userId       String
+  dealId       String
+  termsVersion String
+  acceptedAt   DateTime @default(now())
+}
+
+model CircumventionFlag {
+  id          String   @id @default(uuid())
+  buyerId     String
+  exporterId  String
+  riskLevel   String   // LOW, MEDIUM, HIGH
+  notes       String?
+  flaggedAt   DateTime @default(now())
+}
+
+model DocumentExtraction {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  fieldName   String
+  fieldValue  String
+  confidence  Float
+  extractedAt DateTime @default(now())
+  verified    Boolean  @default(false)
+  verifiedBy  String? // User ID
+  verifiedAt  DateTime?
+  
+  reviews     DocumentExtractionReview[]
+}
+
+model DocumentExtractionReview {
+  id           String             @id @default(uuid())
+  extractionId String
+  extraction   DocumentExtraction @relation(fields: [extractionId], references: [id])
+  reviewerId   String
+  previousValue String?
+  newValue     String
+  reviewedAt   DateTime           @default(now())
+}
+
+model DossierSummary {
+  id            String   @id @default(uuid())
+  tradeId       String
+  trade         TradeDeal @relation(fields: [tradeId], references: [id])
+  content       String // The actual summary text
+  modelVersion  String
+  promptVersion String
+  generatedAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   // INFO, WARNING, SUCCESS
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  tradeId   String
+  trade     TradeDeal @relation(fields: [tradeId], references: [id])
+  senderId  String
+  content   String
+  createdAt DateTime  @default(now())
+}
+
+model DealScore {
+  id          String    @id @default(uuid())
+  tradeId     String    @unique
+  trade       TradeDeal @relation(fields: [tradeId], references: [id])
+  score       Int
+  explanation String
+  improvements String   // JSON array of strings
+  generatedAt DateTime  @default(now())
+}

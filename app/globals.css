@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colors - Agric Green */
+  --color-primary: #047857;
+  /* Emerald 700 */
+  --color-primary-hover: #065f46;
+  /* Emerald 800 */
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary Colors - Trade Navy */
+  --color-secondary: #0e7490;
+  /* Cyan 700 */
+  --color-secondary-hover: #155e75;
+  /* Cyan 800 */
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent Colors - Harvest Gold */
+  --color-accent: #d97706;
+  /* Amber 600 */
+  --color-accent-hover: #b45309;
+  /* Amber 700 */
+  --color-accent-foreground: #ffffff;
+
+  /* Semantic State Colors */
+  --color-success: #059669;
+  /* Emerald 600 */
+  --color-success-foreground: #ffffff;
+  --color-warning: #d97706;
+  /* Amber 600 */
+  --color-warning-foreground: #ffffff;
+  --color-error: #dc2626;
+  /* Red 600 */
+  --color-error-foreground: #ffffff;
+  --color-info: #0284c7;
+  /* Sky 600 */
+  --color-info-foreground: #ffffff;
+
+  /* Background Colors */
+  --color-background: #F8FAFC;
+  /* Slate 50 */
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+  /* Slate 100 */
+  --color-surface-active: #e2e8f0;
+  /* Slate 200 */
+
+  /* Text Colors */
+  --color-foreground: #0f172a;
+  /* Slate 900 */
+  --color-foreground-muted: #64748b;
+  /* Slate 500 */
+  --color-foreground-accent: #0e7490;
+  /* Cyan 700 */
+
+  /* Border Colors */
+  --color-border: #e2e8f0;
+  /* Slate 200 */
+  --color-border-hover: #cbd5e1;
+  /* Slate 300 */
+  --color-input: #e2e8f0;
+
+  /* Ring Colors for Focus */
+  --color-ring: #047857;
+
+  /* Font Families */
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Roboto Mono", monospace;
+
+  /* Shadow Design Token */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+}
+
+/* Base Styles */
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply tracking-tight font-medium text-slate-900;
+  }
+
+  h1 {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl;
+  }
+
+  h3 {
+    @apply text-lg sm:text-xl;
+  }
+}
+
+/* Utility Components */
+@layer components {
+  .container-wide {
+    @apply max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+}
